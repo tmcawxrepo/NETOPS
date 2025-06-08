@@ -1,0 +1,31 @@
+---
+- name: TMC CREACION DE VLAN CAT CISCO
+  hosts: all
+  gather_facts: false
+
+  vars:
+    vlan_id: "{{ vlan_id | default('666') }}"   # Obtiene vlan_id de AWX o usa '666'
+    vlan_name: "{{ vlan_name | default('devil') }}" # Obtiene vlan_name de AWX o usa 'devil'
+    remote_host: "10.9.9.199"                       # Define el host remoto
+    
+  tasks:
+    - name: Preparacion de archivo de configuracion Switch Acceso TMC
+      become: true
+      copy:
+        dest: /etc/ansible/playbooks/configapi.txt
+        content: |
+          host={{ remote_host }}
+          credentials_file=/etc/ansible/playbooks/credentials.txt
+          report_file=/etc/ansible/playbooks/vlan_report.html
+          vlan_id={{ vlan_id }}
+          vlan_name={{ vlan_name }}
+          enable_secret=
+
+    - name: Ejecucion de configuracion switch acceso TMC
+      become: true
+      command:
+        cmd: ansible-playbook /etc/ansible/playbooks/catsw.yml
+    
+    - name: Generacion de reporte de ejecucion switch acceso TMC
+      debug:
+        msg: "El reporte de creacion de VLAN GENERADO---VALIDAR GENERACION en http://10.9.9.223:8443/vlan_report.html"
